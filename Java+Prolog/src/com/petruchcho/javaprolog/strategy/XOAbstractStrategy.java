@@ -40,7 +40,13 @@ public abstract class XOAbstractStrategy {
         }
     }
 
-    protected abstract String getFileName();
+    public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
 
-    protected abstract CellCoordinates makeMove(Move move);
+    public abstract void clearState();
+
+    public abstract CellCoordinates makeMove(Move move);
+
+    protected abstract String getPlayerCharacter(Player player);
+
+    protected abstract String getFileName();
 }
