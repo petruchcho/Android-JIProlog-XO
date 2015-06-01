@@ -3,32 +3,33 @@ package com.petruchcho.javaprolog.Field;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
+
 public final class FieldCell {
 
     public interface OnCellValueChangeListener {
-        void onCellValueChanged(int x, int y, char value);
+        void onCellValueChanged(XOAbstractStrategy.Player value, CellCoordinates coordinates);
     }
 
     private final CellCoordinates coordinates;
     private final Button button;
-    private char value;
+    private XOAbstractStrategy.Player value;
     private OnCellValueChangeListener listener;
 
     public FieldCell(int x, int y, Button button) {
         super();
         coordinates = new CellCoordinates(x, y);
         this.button = button;
-        value = ' ';
     }
 
-    public char getValue() {
+    public XOAbstractStrategy.Player getValue() {
         return value;
     }
 
-    public void setValue(char value) {
+    public void setValue(XOAbstractStrategy.Player value) {
         this.value = value;
         button.setText(String.valueOf(value));
-        listener.onCellValueChanged(coordinates.getX(), coordinates.getY(), value);
+        listener.onCellValueChanged(value, coordinates);
         button.setEnabled(false);
     }
 
