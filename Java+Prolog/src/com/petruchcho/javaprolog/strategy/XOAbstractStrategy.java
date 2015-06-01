@@ -1,12 +1,6 @@
 package com.petruchcho.javaprolog.strategy;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-
 import com.petruchcho.javaprolog.Field.CellCoordinates;
-import com.ugos.jiprolog.engine.JIPEngine;
-
-import java.io.IOException;
 
 public abstract class XOAbstractStrategy {
 
@@ -22,22 +16,13 @@ public abstract class XOAbstractStrategy {
         void onError(Exception e);
     }
 
-    private JIPEngine jipEngine;
-    private XOStrategyEventsListener eventsListener;
+    private static final int SIZE_N = 3;
+    private static final int SIZE_M = 3;
 
-    public XOAbstractStrategy(@NonNull Context context) {
-        initProlog(context);
-    }
+    protected XOStrategyEventsListener eventsListener;
 
-    private void initProlog(@NonNull Context context) {
-        jipEngine = new JIPEngine();
-        try {
-            jipEngine.consultStream(context.getAssets().open(getFileName()), getFileName());
-        } catch (IOException e) {
-            if (eventsListener != null) {
-                eventsListener.onError(e);
-            }
-        }
+    public void setEventsListener(XOStrategyEventsListener eventsListener) {
+        this.eventsListener = eventsListener;
     }
 
     public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
@@ -47,6 +32,4 @@ public abstract class XOAbstractStrategy {
     public abstract CellCoordinates makeMove(Move move);
 
     protected abstract String getPlayerCharacter(Player player);
-
-    protected abstract String getFileName();
 }
