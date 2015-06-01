@@ -3,7 +3,7 @@ package com.petruchcho.javaprolog.strategy;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.petruchcho.javaprolog.Field.CellCoordinates;
+import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.ugos.jiprolog.engine.JIPEngine;
 import com.ugos.jiprolog.engine.JIPQuery;
 import com.ugos.jiprolog.engine.JIPTerm;

@@ -1,4 +1,4 @@
-package com.petruchcho.javaprolog.Field;
+package com.petruchcho.javaprolog.field;
 
 public final class CellCoordinates {
     private final int x;

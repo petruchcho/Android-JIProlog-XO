@@ -11,9 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.petruchcho.javaprolog.Field.CellCoordinates;
-import com.petruchcho.javaprolog.Field.FieldCell;
-import com.petruchcho.javaprolog.Field.FieldCell.OnCellValueChangeListener;
+import com.petruchcho.javaprolog.field.CellCoordinates;
+import com.petruchcho.javaprolog.field.FieldCell;
+import com.petruchcho.javaprolog.field.FieldCell.OnCellValueChangeListener;
 import com.petruchcho.javaprolog.strategy.Move;
 import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;

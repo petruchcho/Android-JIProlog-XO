@@ -1,6 +1,6 @@
 package com.petruchcho.javaprolog.strategy;
 
-import com.petruchcho.javaprolog.Field.CellCoordinates;
+import com.petruchcho.javaprolog.field.CellCoordinates;
 
 public class Move {
 

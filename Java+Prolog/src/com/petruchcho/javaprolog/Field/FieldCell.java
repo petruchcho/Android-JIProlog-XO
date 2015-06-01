@@ -1,4 +1,4 @@
-package com.petruchcho.javaprolog.Field;
+package com.petruchcho.javaprolog.field;
 
 import android.view.View.OnClickListener;
 import android.widget.Button;
