@@ -16,8 +16,8 @@ public abstract class XOAbstractStrategy {
         void onError(Exception e);
     }
 
-    private static final int SIZE_N = 3;
-    private static final int SIZE_M = 3;
+    protected static final int SIZE_N = 3;
+    protected static final int SIZE_M = 3;
 
     protected XOStrategyEventsListener eventsListener;
 
@@ -25,11 +25,15 @@ public abstract class XOAbstractStrategy {
         this.eventsListener = eventsListener;
     }
 
-    public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
-
     public abstract void clearState();
 
-    public abstract CellCoordinates makeMove(Move move);
+    public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
+
+    public abstract CellCoordinates makeMove(Move move) throws Exception;
+
+    protected Player getPlayerOpponent(Player player) {
+        return player == Player.X ? Player.O : Player.X;
+    }
 
     protected abstract String getPlayerCharacter(Player player);
 }

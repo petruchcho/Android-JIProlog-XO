@@ -9,14 +9,16 @@ import java.io.IOException;
 
 public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy{
 
-    private JIPEngine jipEngine;
+    private JIPEngine jipEngine = new JIPEngine();
+    private Context context;
 
     public XOAbstractPrologStrategy(@NonNull Context context) {
         initProlog(context);
     }
 
     private void initProlog(@NonNull Context context) {
-        jipEngine = new JIPEngine();
+        this.context = context;
+        jipEngine.reset();
         try {
             jipEngine.consultStream(context.getAssets().open(getFileName()), getFileName());
         } catch (IOException e) {
@@ -24,6 +26,11 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy{
                 eventsListener.onError(e);
             }
         }
+    }
+
+    @Override
+    public void clearState() {
+        initProlog(context);
     }
 
     public JIPEngine getJipEngine() {

@@ -40,4 +40,16 @@ public class Move {
         this.lastOpponentMove = builder.lastOpponentMove;
         this.moveNumber = builder.moveNumber;
     }
+
+    public int getMoveNumber() {
+        return moveNumber;
+    }
+
+    public CellCoordinates getLastOpponentMove() {
+        return lastOpponentMove;
+    }
+
+    public XOAbstractStrategy.Player getPlayer() {
+        return player;
+    }
 }
