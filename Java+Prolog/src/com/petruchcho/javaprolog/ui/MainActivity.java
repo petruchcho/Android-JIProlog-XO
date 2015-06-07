@@ -1,4 +1,4 @@
-package com.petruchcho.javaprolog;
+package com.petruchcho.javaprolog.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.petruchcho.javaprolog.R;
 import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.petruchcho.javaprolog.field.FieldCell;
 import com.petruchcho.javaprolog.field.FieldCell.OnCellValueChangeListener;
