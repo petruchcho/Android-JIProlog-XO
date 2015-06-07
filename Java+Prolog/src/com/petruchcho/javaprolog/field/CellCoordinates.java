@@ -16,4 +16,11 @@ public final class CellCoordinates {
     public int getY() {
         return y;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof CellCoordinates)) return false;
+        CellCoordinates other = (CellCoordinates) o;
+        return x == other.getX() && y == other.getY();
+    }
 }

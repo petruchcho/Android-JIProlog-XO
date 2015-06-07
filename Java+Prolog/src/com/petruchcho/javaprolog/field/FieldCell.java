@@ -33,12 +33,8 @@ public final class FieldCell {
         button.setEnabled(false);
     }
 
-    public int getX() {
-        return coordinates.getX();
-    }
-
-    public int getY() {
-        return coordinates.getY();
+    public CellCoordinates getCoordinates() {
+        return coordinates;
     }
 
     public int getId() {

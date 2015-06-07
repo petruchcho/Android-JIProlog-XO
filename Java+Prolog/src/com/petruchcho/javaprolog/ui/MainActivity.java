@@ -13,6 +13,7 @@ import android.widget.ToggleButton;
 
 import com.petruchcho.javaprolog.R;
 import com.petruchcho.javaprolog.field.CellCoordinates;
+import com.petruchcho.javaprolog.field.Field;
 import com.petruchcho.javaprolog.field.FieldCell;
 import com.petruchcho.javaprolog.field.FieldCell.OnCellValueChangeListener;
 import com.petruchcho.javaprolog.strategy.Move;
@@ -24,7 +25,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements OnCellValueChangeListener {
 
-    private List<FieldCell> cells;
+    private Field field;
 
     private TextView debugText;
     private ToggleButton switchButton;
@@ -76,33 +77,30 @@ public class MainActivity extends Activity implements OnCellValueChangeListener 
         });
         switchButton.setVisibility(View.GONE); // TODO
 
-        makeMove(-1, -1);
+        makeMove(new CellCoordinates(-1, -1));
     }
 
     private void clean() {
 
     }
 
-    private void makeMove(int lastOpponentX, int lastOpponentY) {
+    private void makeMove(CellCoordinates lastOpponentMove) {
         Move move = new Move.Builder(XOAbstractStrategy.Player.X)
-                .setLastOpponentMove(new CellCoordinates(lastOpponentX, lastOpponentY))
+                .setLastOpponentMove(lastOpponentMove)
                 .build();
         try {
             CellCoordinates coordinates = strategy.makeMove(move);
             int x = coordinates.getX();
             int y = coordinates.getY();
-            for (FieldCell cell : cells) {
-                if (cell.getX() == x - 1 && cell.getY() == y - 1) {
-                    cell.setValue(XOAbstractStrategy.Player.X);
-                }
-            }
+            FieldCell target = field.getCell(x - 1, y - 1);
+            target.setValue(XOAbstractStrategy.Player.X);
         } catch (Exception e) {
             makeToast(e);
         }
     }
 
     private void initCells() {
-        cells = new ArrayList<>();
+        List<FieldCell> cells = new ArrayList<>();
         Button[][] buttons = new Button[][]{
                 {(Button) findViewById(R.id.button1),
                         (Button) findViewById(R.id.button2),
@@ -121,13 +119,12 @@ public class MainActivity extends Activity implements OnCellValueChangeListener 
                 cells.add(cell);
             }
         }
+        field = new Field(cells);
     }
 
     private void declareResult(String message) {
         debugText.setText(message);
-        for (FieldCell cell : cells) {
-            cell.setEnabled(false);
-        }
+        field.setEnabled(false);
     }
 
     private void makeToast(Exception e) {
@@ -137,14 +134,9 @@ public class MainActivity extends Activity implements OnCellValueChangeListener 
     private OnClickListener humanMoveListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            FieldCell targetCell = null;
-            for (FieldCell cell : cells) {
-                if (v.getId() == cell.getId()) {
-                    targetCell = cell;
-                }
-            }
+            FieldCell targetCell = field.getCell(v.getId());
             targetCell.setValue(XOAbstractStrategy.Player.O); // TODO
-            makeMove(targetCell.getX(), targetCell.getY());
+            makeMove(targetCell.getCoordinates());
         }
     };
 
