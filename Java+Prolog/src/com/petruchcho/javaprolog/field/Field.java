@@ -34,7 +34,7 @@ public class Field {
 
     public void setEnabled(boolean enabled) {
         for (FieldCell cell : cells) {
-            cell.setEnabled(false);
+            cell.setEnabled(enabled);
         }
     }
 }

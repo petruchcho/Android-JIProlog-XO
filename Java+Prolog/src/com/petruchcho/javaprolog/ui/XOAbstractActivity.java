@@ -14,6 +14,7 @@ import java.util.Map;
 
 abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellValueChangeListener {
 
+    private static final int DELAY_BETWEEN_MOVES = 2000;
     private XOAbstractStrategy.Player currentPlayer = XOAbstractStrategy.Player.X;
     private CellCoordinates lastMove;
 
@@ -87,8 +88,19 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     protected void swapCurrentPlayer() {
         currentPlayer = currentPlayer.getOpponent();
         if (getControllerForPlayer(currentPlayer) == Controller.ANDROID) {
-            // TODO Make a delay
-            makeMove(createMoveForStrategy(currentPlayer, lastMove, 0));
+            isPaused(true);
+            if (getControllerForPlayer(currentPlayer.getOpponent()) == Controller.ANDROID) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        makeMove(createMoveForStrategy(currentPlayer, lastMove, 0));
+                    }
+                }, DELAY_BETWEEN_MOVES);
+            } else {
+                makeMove(createMoveForStrategy(currentPlayer, lastMove, 0));
+            }
+        } else {
+            isPaused(false);
         }
     }
 

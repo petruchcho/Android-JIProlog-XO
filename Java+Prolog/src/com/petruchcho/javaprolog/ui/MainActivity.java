@@ -1,13 +1,10 @@
 package com.petruchcho.javaprolog.ui;
 
-import android.app.Activity;
-import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -16,8 +13,6 @@ import com.petruchcho.javaprolog.R;
 import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.petruchcho.javaprolog.field.Field;
 import com.petruchcho.javaprolog.field.FieldCell;
-import com.petruchcho.javaprolog.field.FieldCell.OnCellValueChangeListener;
-import com.petruchcho.javaprolog.strategy.Move;
 import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;
 
@@ -30,6 +25,9 @@ public class MainActivity extends XOAbstractActivity {
 
     private TextView debugText;
     private ToggleButton switchButton;
+    private ProgressBar progress;
+
+    private boolean isResultDeclared;
 
     private Handler handler = new Handler();
 
@@ -51,6 +49,8 @@ public class MainActivity extends XOAbstractActivity {
             }
         });
 
+        progress = (ProgressBar) findViewById(R.id.progress);
+
         switchButton = (ToggleButton) findViewById(R.id.xo_switch);
         //switchButton.setOnCheckedChangeListener((buttonView, isChecked) -> clean());
         switchButton.setVisibility(View.GONE); // TODO
@@ -58,6 +58,7 @@ public class MainActivity extends XOAbstractActivity {
 
     @Override
     protected void declareResult(String message) {
+        isResultDeclared = true;
         debugText.setText(message);
         field.setEnabled(false);
     }
@@ -110,11 +111,18 @@ public class MainActivity extends XOAbstractActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            if (coordinates == null) {
+                                return;
+                            }
                             int x = coordinates.getX();
                             int y = coordinates.getY();
                             updateCell(x - 1, y - 1, player);
                             setLastMove(new CellCoordinates(x, y));
-                            swapCurrentPlayer();
+                            if (!isResultDeclared) {
+                                swapCurrentPlayer();
+                            } else {
+                                progress.setVisibility(View.GONE);
+                            }
                         }
                     });
                 }
@@ -136,7 +144,8 @@ public class MainActivity extends XOAbstractActivity {
 
     @Override
     protected void isPaused(boolean isPaused) {
-
+        field.setEnabled(!isPaused);
+        progress.setVisibility(isPaused ? View.VISIBLE : View.GONE);
     }
 
     private void clean() {
