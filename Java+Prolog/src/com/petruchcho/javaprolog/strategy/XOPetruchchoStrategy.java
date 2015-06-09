@@ -13,15 +13,6 @@ import java.util.Hashtable;
 
 public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
 
-    private static XOAbstractStrategy instance;
-
-    public static XOAbstractStrategy getInstance(Context context) {
-        if (instance == null) {
-            instance = new XOPetruchchoStrategy(context);
-        }
-        return instance;
-    }
-
     public XOPetruchchoStrategy(@NonNull Context context) {
         super(context);
     }
