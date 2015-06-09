@@ -16,8 +16,6 @@ import java.util.Hashtable;
 
 public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
 
-    private boolean solutionWasUsed = false;
-
     public XOPetruchchoStrategy(@NonNull Context context) {
         super(context);
     }
