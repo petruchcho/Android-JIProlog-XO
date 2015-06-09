@@ -27,8 +27,6 @@ import java.util.Map;
 
 public class MainActivity extends XOAbstractActivity {
 
-    private Field field;
-
     private TextView debugText;
     private ToggleButton switchButton;
 

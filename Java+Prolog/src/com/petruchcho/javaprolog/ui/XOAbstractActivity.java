@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.petruchcho.javaprolog.field.CellCoordinates;
+import com.petruchcho.javaprolog.field.Field;
 import com.petruchcho.javaprolog.field.FieldCell;
 import com.petruchcho.javaprolog.strategy.Move;
 import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
@@ -15,6 +16,8 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
 
     private XOAbstractStrategy.Player currentPlayer = XOAbstractStrategy.Player.X;
     private CellCoordinates lastMove;
+
+    protected Field field;
 
     public enum Controller {
         HUMAN, ANDROID
@@ -89,12 +92,8 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     protected void swapCurrentPlayer() {
         currentPlayer = currentPlayer.getOpponent();
         if (getControllerForPlayer(currentPlayer) == Controller.ANDROID) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    makeMove(createMoveForStrategy(currentPlayer, lastMove, 0));
-                }
-            }, 2000);
+            // TODO Make a delay
+            makeMove(createMoveForStrategy(currentPlayer, lastMove, 0));
         }
     }
 
