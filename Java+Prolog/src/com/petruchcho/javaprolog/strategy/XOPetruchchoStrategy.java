@@ -36,62 +36,17 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
     }
 
     @Override
-    public void makeMove(final Move move) throws Exception {
+    protected String buildQuestion(Move move) {
         int lastOpponentX = move.getLastOpponentMove().getX();
         int lastOpponentY = move.getLastOpponentMove().getY();
 
-        String question = String.format(
+        return String.format(
                 "?- move('%s', %s, %s, %s, X, Y, Message)",
                 getPlayerCharacter(move.getPlayer()), lastOpponentX, lastOpponentY, move.getMoveNumber());
-
-        final JIPEngine jip = getJipEngine();
-        jip.closeAllQueries();
-        if (jip.getEventListeners().size() == 0) {
-            jip.addEventListener(new JIPEventListener() {
-                @Override
-                public void solutionNotified(JIPEvent jipEvent) {
-                    if (eventsListener != null) {
-                        eventsListener.moveMade(move.getPlayer(), useSolution(jipEvent.getTerm(), move));
-                    }
-                    jip.closeAllQueries();
-                }
-
-                @Override
-                public void termNotified(JIPEvent jipEvent) {
-
-                }
-
-                @Override
-                public void openNotified(JIPEvent jipEvent) {
-
-                }
-
-                @Override
-                public void moreNotified(JIPEvent jipEvent) {
-
-                }
-
-                @Override
-                public void endNotified(JIPEvent jipEvent) {
-
-                }
-
-                @Override
-                public void closeNotified(JIPEvent jipEvent) {
-
-                }
-
-                @Override
-                public void errorNotified(JIPErrorEvent jipErrorEvent) {
-
-                }
-            });
-        }
-
-        jip.openQuery(jip.getTermParser().parseTerm(question));
     }
 
-    private CellCoordinates useSolution(JIPTerm solution, Move move) {
+    @Override
+    protected CellCoordinates useSolution(JIPTerm solution, Move move) {
         Hashtable map = solution.getVariablesTable();
         String message = ((JIPVariable) map.get("Message")).getValue().toString();
         if (message.equals("'Continue'") || message.contains("this move")) {
