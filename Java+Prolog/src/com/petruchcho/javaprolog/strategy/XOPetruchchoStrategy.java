@@ -71,7 +71,7 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
                     if (message.contains("Win")) {
                         eventsListener.onGameOverWithWinner(move.getPlayer());
                     } else if (message.contains("Lose")) {
-                        eventsListener.onGameOverWithWinner(getPlayerOpponent(move.getPlayer()));
+                        eventsListener.onGameOverWithWinner(move.getPlayer().getOpponent());
                     }
                 }
             }

@@ -21,40 +21,24 @@ import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class MainActivity extends Activity implements OnCellValueChangeListener {
+public class MainActivity extends XOAbstractActivity {
 
     private Field field;
 
     private TextView debugText;
     private ToggleButton switchButton;
 
-    private XOAbstractStrategy strategy;
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        strategy = XOPetruchchoStrategy.getInstance(this);
-        strategy.setEventsListener(new XOAbstractStrategy.XOStrategyEventsListener() {
-            @Override
-            public void onGameOverWithWinner(XOAbstractStrategy.Player player) {
-                declareResult(String.format("%s is winner!", player));
-            }
-
-            @Override
-            public void onDraw() {
-                declareResult("It's a draw!");
-            }
-
-            @Override
-            public void onError(Exception e) {
-                makeToast(e);
-            }
-        });
-
+    protected void initViews() {
         initCells();
         debugText = (TextView) findViewById(R.id.debug_text);
 
@@ -67,36 +51,66 @@ public class MainActivity extends Activity implements OnCellValueChangeListener 
         });
 
         switchButton = (ToggleButton) findViewById(R.id.xo_switch);
-        switchButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView,
-                                         boolean isChecked) {
-                clean();
-            }
-        });
+        //switchButton.setOnCheckedChangeListener((buttonView, isChecked) -> clean());
         switchButton.setVisibility(View.GONE); // TODO
+    }
 
-        makeMove(new CellCoordinates(-1, -1));
+    @Override
+    protected void declareResult(String message) {
+        debugText.setText(message);
+        field.setEnabled(false);
+    }
+
+    @Override
+    protected Map<XOAbstractStrategy.Player, Controller> initDefaultControllerForPlayer() {
+        return new HashMap<XOAbstractStrategy.Player, Controller>() {{
+            put(XOAbstractStrategy.Player.X, Controller.ANDROID);
+            put(XOAbstractStrategy.Player.O, Controller.HUMAN);
+        }};
+    }
+
+    @Override
+    protected Map<XOAbstractStrategy.Player, XOAbstractStrategy> initDefaultStrategyForPlayer() {
+        return new HashMap<XOAbstractStrategy.Player, XOAbstractStrategy>() {{
+            XOAbstractStrategy strategy = new XOPetruchchoStrategy(MainActivity.this);
+            strategy.setEventsListener(new XOAbstractStrategy.XOStrategyEventsListener() {
+                @Override
+                public void onGameOverWithWinner(XOAbstractStrategy.Player player) {
+                    declareResult(String.format("%s is winner!", player));
+                }
+
+                @Override
+                public void onDraw() {
+                    declareResult("It's a draw!");
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    makeToast(e);
+                }
+            });
+            put(XOAbstractStrategy.Player.X, strategy);
+            put(XOAbstractStrategy.Player.O, null);
+        }};
+    }
+
+    @Override
+    protected void handleError(Exception e) {
+        makeToast(e);
+    }
+
+    @Override
+    protected void updateCell(int x, int y, XOAbstractStrategy.Player value) {
+        field.getCell(x, y).setValue(value);
+    }
+
+    @Override
+    protected void isPaused(boolean isPaused) {
+
     }
 
     private void clean() {
 
-    }
-
-    private void makeMove(CellCoordinates lastOpponentMove) {
-        Move move = new Move.Builder(XOAbstractStrategy.Player.X)
-                .setLastOpponentMove(lastOpponentMove)
-                .build();
-        try {
-            CellCoordinates coordinates = strategy.makeMove(move);
-            int x = coordinates.getX();
-            int y = coordinates.getY();
-            FieldCell target = field.getCell(x - 1, y - 1);
-            target.setValue(XOAbstractStrategy.Player.X);
-        } catch (Exception e) {
-            makeToast(e);
-        }
     }
 
     private void initCells() {
@@ -122,26 +136,17 @@ public class MainActivity extends Activity implements OnCellValueChangeListener 
         field = new Field(cells);
     }
 
-    private void declareResult(String message) {
-        debugText.setText(message);
-        field.setEnabled(false);
-    }
-
     private void makeToast(Exception e) {
         Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
     }
 
-    private OnClickListener humanMoveListener = new OnClickListener() {
+    protected View.OnClickListener humanMoveListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             FieldCell targetCell = field.getCell(v.getId());
-            targetCell.setValue(XOAbstractStrategy.Player.O); // TODO
-            makeMove(targetCell.getCoordinates());
+            targetCell.setValue(getCurrentPlayer());
+            setLastMove(targetCell.getCoordinates());
+            swapCurrentPlayer();
         }
     };
-
-    @Override
-    public void onCellValueChanged(XOAbstractStrategy.Player value, CellCoordinates coordinates) {
-        strategy.updateCellValue(value, coordinates);
-    }
 }

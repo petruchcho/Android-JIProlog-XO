@@ -5,7 +5,11 @@ import com.petruchcho.javaprolog.field.CellCoordinates;
 public abstract class XOAbstractStrategy {
 
     public enum Player {
-        X, O
+        X, O;
+
+        public Player getOpponent() {
+            return this == X ? O : X;
+        }
     }
 
     public interface XOStrategyEventsListener {
@@ -30,10 +34,6 @@ public abstract class XOAbstractStrategy {
     public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
 
     public abstract CellCoordinates makeMove(Move move) throws Exception;
-
-    protected Player getPlayerOpponent(Player player) {
-        return player == Player.X ? Player.O : Player.X;
-    }
 
     protected abstract String getPlayerCharacter(Player player);
 }
