@@ -18,6 +18,8 @@ public abstract class XOAbstractStrategy {
         void onDraw();
 
         void onError(Exception e);
+
+        void moveMade(Player player, CellCoordinates coordinates);
     }
 
     protected static final int SIZE_N = 3;
@@ -33,7 +35,7 @@ public abstract class XOAbstractStrategy {
 
     public abstract void updateCellValue(Player player, CellCoordinates cellCoordinates);
 
-    public abstract CellCoordinates makeMove(Move move) throws Exception;
+    public abstract void makeMove(Move move) throws Exception;
 
     protected abstract String getPlayerCharacter(Player player);
 }

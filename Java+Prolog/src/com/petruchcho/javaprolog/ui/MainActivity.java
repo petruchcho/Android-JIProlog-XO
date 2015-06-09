@@ -2,6 +2,7 @@ package com.petruchcho.javaprolog.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -29,6 +30,8 @@ public class MainActivity extends XOAbstractActivity {
 
     private TextView debugText;
     private ToggleButton switchButton;
+
+    private Handler handler = new Handler();
 
     @Override
     protected int getLayoutId() {
@@ -73,18 +76,47 @@ public class MainActivity extends XOAbstractActivity {
             XOAbstractStrategy strategy = new XOPetruchchoStrategy(MainActivity.this);
             strategy.setEventsListener(new XOAbstractStrategy.XOStrategyEventsListener() {
                 @Override
-                public void onGameOverWithWinner(XOAbstractStrategy.Player player) {
-                    declareResult(String.format("%s is winner!", player));
+                public void onGameOverWithWinner(final XOAbstractStrategy.Player player) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            declareResult(String.format("%s is winner!", player));
+                        }
+                    });
                 }
 
                 @Override
                 public void onDraw() {
-                    declareResult("It's a draw!");
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            declareResult("It's a draw!");
+                        }
+                    });
                 }
 
                 @Override
-                public void onError(Exception e) {
-                    makeToast(e);
+                public void onError(final Exception e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            makeToast(e);
+                        }
+                    });
+                }
+
+                @Override
+                public void moveMade(final XOAbstractStrategy.Player player, final CellCoordinates coordinates) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            int x = coordinates.getX();
+                            int y = coordinates.getY();
+                            updateCell(x - 1, y - 1, player);
+                            setLastMove(new CellCoordinates(x, y));
+                            swapCurrentPlayer();
+                        }
+                    });
                 }
             });
             put(XOAbstractStrategy.Player.X, strategy);

@@ -56,12 +56,7 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
 
     protected final void makeMove(Move move) {
         try {
-            CellCoordinates coordinates = getStrategyForPlayer(move.getPlayer()).makeMove(move);
-            int x = coordinates.getX();
-            int y = coordinates.getY();
-            updateCell(x - 1, y - 1, move.getPlayer());
-            setLastMove(new CellCoordinates(x - 1, y - 1));
-            swapCurrentPlayer();
+            getStrategyForPlayer(move.getPlayer()).makeMove(move);
         } catch (Exception e) {
             handleError(e);
         }
