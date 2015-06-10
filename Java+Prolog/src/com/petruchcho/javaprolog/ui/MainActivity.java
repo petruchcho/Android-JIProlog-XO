@@ -116,7 +116,7 @@ public class MainActivity extends XOAbstractActivity {
                             }
                             int x = coordinates.getX();
                             int y = coordinates.getY();
-                            updateCell(x - 1, y - 1, player);
+                            updateCell(x, y, player);
                             setLastMove(new CellCoordinates(x, y));
                             if (!isResultDeclared) {
                                 swapCurrentPlayer();
@@ -166,7 +166,7 @@ public class MainActivity extends XOAbstractActivity {
                         (Button) findViewById(R.id.button9)},};
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                FieldCell cell = new FieldCell(i, j, buttons[i][j]);
+                FieldCell cell = new FieldCell(i + 1, j + 1, buttons[i][j]);
                 cell.setOnCLickListener(humanMoveListener);
                 cell.setOnCellValueChangedListener(this);
                 cells.add(cell);
