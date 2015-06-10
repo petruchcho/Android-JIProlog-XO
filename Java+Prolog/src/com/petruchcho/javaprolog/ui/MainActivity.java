@@ -15,6 +15,7 @@ import com.petruchcho.javaprolog.field.Field;
 import com.petruchcho.javaprolog.field.FieldCell;
 import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;
+import com.petruchcho.javaprolog.strategy.XOTyugashovStrategy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class MainActivity extends XOAbstractActivity {
     @Override
     protected Map<XOAbstractStrategy.Player, XOAbstractStrategy> initDefaultStrategyForPlayer() {
         return new HashMap<XOAbstractStrategy.Player, XOAbstractStrategy>() {{
-            XOAbstractStrategy strategy = new XOPetruchchoStrategy(MainActivity.this);
+            XOAbstractStrategy strategy = new XOTyugashovStrategy(MainActivity.this);
             strategy.setEventsListener(new XOAbstractStrategy.XOStrategyEventsListener() {
                 @Override
                 public void onGameOverWithWinner(final XOAbstractStrategy.Player player) {
