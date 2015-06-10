@@ -27,9 +27,9 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
         int y = cellCoordinates.getY();
 
         jip.retract(jip.getTermParser().parseTerm(
-                String.format("a([%s, %s], ' ').", x + 1, y + 1)));
+                String.format("a([%s, %s], ' ').", x, y)));
         jip.asserta(jip.getTermParser().parseTerm(
-                String.format("a([%s, %s], '%s').", x + 1, y + 1,
+                String.format("a([%s, %s], '%s').", x, y,
                         getPlayerCharacter(player))));
     }
 
