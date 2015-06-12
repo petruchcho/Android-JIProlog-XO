@@ -12,13 +12,14 @@ import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 
 import java.util.Map;
 
-abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellValueChangeListener {
+abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellValueChangeListener, XOAbstractStrategy.XOStrategyEventsListener {
 
     private static final int DELAY_BETWEEN_MOVES = 2000;
     private XOAbstractStrategy.Player currentPlayer = XOAbstractStrategy.Player.X;
-    private CellCoordinates lastMove;
+    private CellCoordinates lastMove = new CellCoordinates(-1, -1);
 
     protected Field field;
+    protected boolean isResultDeclared;
 
     public enum Controller {
         HUMAN, ANDROID
@@ -31,9 +32,12 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     final protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
-        initViews();
         initStrategies();
-        makeMove(createMoveForStrategy(getCurrentPlayer(), new CellCoordinates(-1, -1), 0));
+        initViews();
+        if (getControllerForPlayer(currentPlayer) == Controller.ANDROID) {
+            makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
+        }
+        //makeMove(createMoveForStrategy(getCurrentPlayer(), new CellCoordinates(-1, -1), 0));
     }
 
     protected abstract int getLayoutId();
@@ -45,7 +49,10 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
         strategyForPlayer = initDefaultStrategyForPlayer();
     }
 
-    protected abstract void declareResult(String message);
+    protected void declareResult(String message) {
+        field.setEnabled(false);
+        isResultDeclared = true;
+    }
 
     protected abstract Map<XOAbstractStrategy.Player, Controller> initDefaultControllerForPlayer();
 
@@ -57,6 +64,7 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
 
     protected final void makeMove(Move move) {
         try {
+            isPaused(true);
             getStrategyForPlayer(move.getPlayer()).makeMove(move);
         } catch (Exception e) {
             handleError(e);
@@ -75,10 +83,31 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
         this.lastMove = lastMove;
     }
 
+    public CellCoordinates getLastMove() {
+        return lastMove;
+    }
+
+    protected void clean() {
+        for (Map.Entry<XOAbstractStrategy.Player, Controller> entry : controllerForPlayer.entrySet()) {
+            if (entry.getValue() == Controller.ANDROID) {
+                getStrategyForPlayer(entry.getKey()).clearState();
+            }
+        }
+        field.clean();
+    }
+
     protected abstract void handleError(Exception e);
 
     protected XOAbstractStrategy getStrategyForPlayer(XOAbstractStrategy.Player p) {
         return strategyForPlayer.get(p);
+    }
+
+    protected void setStrategyForPlayer(XOAbstractStrategy.Player p, XOAbstractStrategy strategy) {
+        strategyForPlayer.put(p, strategy);
+    }
+
+    protected void setControllerForPlayer(XOAbstractStrategy.Player p, Controller c) {
+        controllerForPlayer.put(p, c);
     }
 
     protected abstract void updateCell(int x, int y, XOAbstractStrategy.Player value);
@@ -111,5 +140,7 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
                 getStrategyForPlayer(entry.getKey()).updateCellValue(value, coordinates);
             }
         }
+
+        swapCurrentPlayer();
     }
 }

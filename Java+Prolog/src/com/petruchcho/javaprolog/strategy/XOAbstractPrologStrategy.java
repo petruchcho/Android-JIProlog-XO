@@ -2,6 +2,7 @@ package com.petruchcho.javaprolog.strategy;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.ugos.jiprolog.engine.JIPEngine;
@@ -17,7 +18,10 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
     private JIPEngine jipEngine = new JIPEngine();
     private Context context;
 
-    public XOAbstractPrologStrategy(@NonNull Context context) {
+    private static final String TAG = "AbstractPrologStrategy";
+
+    public XOAbstractPrologStrategy(@NonNull Context context, XOStrategyEventsListener eventsListener) {
+        super(eventsListener);
         initProlog(context);
     }
 
@@ -46,6 +50,7 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
                     if (eventsListener != null) {
                         eventsListener.moveMade(move.getPlayer(), useSolution(jipEvent.getTerm(), move));
                     }
+                    Log.d(TAG, "Solution notified");
                     jipEngine.closeAllQueries();
                 }
 
@@ -61,17 +66,17 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
 
                 @Override
                 public void moreNotified(JIPEvent jipEvent) {
-
+                    Log.d(TAG, "More notified");
                 }
 
                 @Override
                 public void endNotified(JIPEvent jipEvent) {
-
+                    Log.d(TAG, "End notified");
                 }
 
                 @Override
                 public void closeNotified(JIPEvent jipEvent) {
-
+                    Log.d(TAG, "Close notified");
                 }
 
                 @Override
@@ -86,7 +91,7 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
 
     @Override
     public void clearState() {
-        initProlog(context);
+        initWithField(new Player[3][3]);
     }
 
     public JIPEngine getJipEngine() {

@@ -27,7 +27,7 @@ public abstract class XOAbstractStrategy {
 
     protected XOStrategyEventsListener eventsListener;
 
-    public void setEventsListener(XOStrategyEventsListener eventsListener) {
+    public XOAbstractStrategy(XOStrategyEventsListener eventsListener) {
         this.eventsListener = eventsListener;
     }
 
@@ -38,4 +38,6 @@ public abstract class XOAbstractStrategy {
     public abstract void makeMove(Move move) throws Exception;
 
     protected abstract String getPlayerCharacter(Player player);
+
+    public abstract void initWithField(Player[][] field);
 }

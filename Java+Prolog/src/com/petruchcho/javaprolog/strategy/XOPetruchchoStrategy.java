@@ -2,6 +2,7 @@ package com.petruchcho.javaprolog.strategy;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.ugos.jiprolog.engine.JIPEngine;
@@ -16,12 +17,15 @@ import java.util.Hashtable;
 
 public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
 
-    public XOPetruchchoStrategy(@NonNull Context context) {
-        super(context);
+    public static final String NAME = "Ponomarev Strategy";
+
+    public XOPetruchchoStrategy(@NonNull Context context, XOStrategyEventsListener eventsListener) {
+        super(context, eventsListener);
     }
 
     @Override
     public void updateCellValue(Player player, CellCoordinates cellCoordinates) {
+        Log.d(NAME, "Update cell value at " + cellCoordinates.getX() + " " + cellCoordinates.getY());
         JIPEngine jip = getJipEngine();
         int x = cellCoordinates.getX();
         int y = cellCoordinates.getY();
@@ -72,7 +76,32 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
 
     @Override
     protected String getPlayerCharacter(Player player) {
+        if (player == null) return " ";
         return player == Player.X ? "X" : "O";
+    }
+
+    @Override
+    public void initWithField(Player[][] field) {
+        JIPEngine jip = getJipEngine();
+        for (int x = 1; x <= 3; x++) {
+            for (int y = 1; y <= 3; y++) {
+                jip.retract(jip.getTermParser().parseTerm(
+                        String.format("a([%s, %s], '%s').", x, y,
+                                getPlayerCharacter(null))));
+
+                jip.retract(jip.getTermParser().parseTerm(
+                        String.format("a([%s, %s], '%s').", x, y,
+                                getPlayerCharacter(Player.X))));
+
+                jip.retract(jip.getTermParser().parseTerm(
+                        String.format("a([%s, %s], '%s').", x, y,
+                                getPlayerCharacter(Player.O))));
+
+                jip.asserta(jip.getTermParser().parseTerm(
+                        String.format("a([%s, %s], '%s').", x, y,
+                                getPlayerCharacter(field[x - 1][y - 1]))));
+            }
+        }
     }
 
     @Override

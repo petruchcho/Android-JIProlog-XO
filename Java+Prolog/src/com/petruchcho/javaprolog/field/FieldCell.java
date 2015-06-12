@@ -52,4 +52,10 @@ public final class FieldCell {
     public void setEnabled(boolean enabled) {
         button.setEnabled(enabled);
     }
+
+    void clean() {
+        value = null;
+        button.setText("");
+        button.setEnabled(true);
+    }
 }
