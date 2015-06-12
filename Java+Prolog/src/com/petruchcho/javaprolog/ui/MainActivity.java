@@ -1,5 +1,7 @@
 package com.petruchcho.javaprolog.ui;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -21,11 +23,14 @@ import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;
 import com.petruchcho.javaprolog.strategy.XOTyugashovStrategy;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends XOAbstractActivity {
 
@@ -33,6 +38,7 @@ public class MainActivity extends XOAbstractActivity {
     private Spinner spinnerX, spinnerO;
 
     private Handler handler = new Handler();
+    private List<XOAbstractStrategy> cachedStrategies = new ArrayList<>();
 
     @Override
     protected int getLayoutId() {
@@ -45,7 +51,8 @@ public class MainActivity extends XOAbstractActivity {
 
         findViewById(R.id.play_again_button).setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {clean();
+            public void onClick(View v) {
+                clean();
             }
         });
 
@@ -61,20 +68,6 @@ public class MainActivity extends XOAbstractActivity {
                 new String[]{XOTyugashovStrategy.NAME, XOPetruchchoStrategy.NAME, "Human"}));
         spinnerO.setSelection(2);
 
-        final AdapterView.OnItemSelectedListener strategyChangeListener = new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                XOAbstractStrategy.Player player = view.getId() == spinnerX.getId() ? XOAbstractStrategy.Player.X : XOAbstractStrategy.Player.O;
-                String strategy = ((CheckedTextView) view).getText().toString();
-                changeStrategyForPlayer(player, strategy);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        };
-
         Button acceptButton = (Button) findViewById(R.id.accept_button);
         // TODO Not thread safe
         acceptButton.setOnClickListener(new OnClickListener() {
@@ -82,9 +75,6 @@ public class MainActivity extends XOAbstractActivity {
             public void onClick(View v) {
                 changeStrategyForPlayer(XOAbstractStrategy.Player.X, spinnerX.getSelectedItem().toString());
                 changeStrategyForPlayer(XOAbstractStrategy.Player.O, spinnerO.getSelectedItem().toString());
-                if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
-                    makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
-                }
             }
         });
     }
@@ -95,18 +85,44 @@ public class MainActivity extends XOAbstractActivity {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
+    private XOAbstractStrategy getStrategy(Class<? extends XOAbstractStrategy> clazz) {
+        for (XOAbstractStrategy strategy : cachedStrategies) {
+            if (strategy.getClass().equals(clazz)) {
+                return strategy;
+            }
+        }
+        new InitStrategyTask().execute(clazz);
+        return null;
+    }
+
+    private void updateStrategies(XOAbstractStrategy strategy) {
+        cachedStrategies.add(strategy);
+        updateStrategies();
+    }
+
+    private void updateStrategies() {
+        changeStrategyForPlayer(XOAbstractStrategy.Player.X, spinnerX.getSelectedItem().toString());
+        changeStrategyForPlayer(XOAbstractStrategy.Player.O, spinnerO.getSelectedItem().toString());
+    }
+
     // TODO Not thread safe
     private void changeStrategyForPlayer(XOAbstractStrategy.Player player, String name) {
         switch (name) {
             case XOPetruchchoStrategy.NAME: {
-                XOAbstractStrategy strategy = new XOPetruchchoStrategy(MainActivity.this, MainActivity.this);
+                XOAbstractStrategy strategy = getStrategy(XOPetruchchoStrategy.class);
+                if (strategy == null) {
+                    return;
+                }
                 strategy.initWithField(field.getField());
                 setStrategyForPlayer(player, strategy);
                 setControllerForPlayer(player, Controller.ANDROID);
             }
             break;
             case XOTyugashovStrategy.NAME: {
-                XOAbstractStrategy strategy = new XOTyugashovStrategy(MainActivity.this, MainActivity.this);
+                XOAbstractStrategy strategy = getStrategy(XOTyugashovStrategy.class);
+                if (strategy == null) {
+                    return;
+                }
                 strategy.initWithField(field.getField());
                 setStrategyForPlayer(player, strategy);
                 setControllerForPlayer(player, Controller.ANDROID);
@@ -115,6 +131,10 @@ public class MainActivity extends XOAbstractActivity {
             default: {
                 setControllerForPlayer(player, Controller.HUMAN);
             }
+        }
+        isPaused(false);
+        if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
+            makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
         }
     }
 
@@ -130,7 +150,7 @@ public class MainActivity extends XOAbstractActivity {
     protected Map<XOAbstractStrategy.Player, XOAbstractStrategy> initDefaultStrategyForPlayer() {
         return new HashMap<XOAbstractStrategy.Player, XOAbstractStrategy>() {{
             // TODO Not thread safe
-            XOAbstractStrategy strategy = new XOTyugashovStrategy(MainActivity.this, MainActivity.this);
+            XOAbstractStrategy strategy = getStrategy(XOTyugashovStrategy.class);
             put(XOAbstractStrategy.Player.X, strategy);
             put(XOAbstractStrategy.Player.O, null);
         }};
@@ -238,5 +258,33 @@ public class MainActivity extends XOAbstractActivity {
 
             }
         });
+    }
+
+    class InitStrategyTask extends AsyncTask<Class<? extends XOAbstractStrategy>, Void, XOAbstractStrategy> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            isPaused(true);
+        }
+
+        @Override
+        protected void onPostExecute(XOAbstractStrategy strategy) {
+            super.onPostExecute(strategy);
+            updateStrategies(strategy);
+        }
+
+        @SafeVarargs
+        @Override
+        protected final XOAbstractStrategy doInBackground(Class<? extends XOAbstractStrategy>... params) {
+            Class<? extends XOAbstractStrategy> clazz = params[0];
+            try {
+                Constructor<? extends XOAbstractStrategy> constructor = clazz.getConstructor(Context.class, XOAbstractStrategy.XOStrategyEventsListener.class);
+                return constructor.newInstance(MainActivity.this, MainActivity.this);
+            } catch (Throwable e) {
+                Log.d("MainActivity", e.getMessage());
+            }
+            return null;
+        }
     }
 }

@@ -32,11 +32,11 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     final protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutId());
-        initStrategies();
         initViews();
-        if (getControllerForPlayer(currentPlayer) == Controller.ANDROID) {
-            makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
-        }
+        initStrategies();
+//        if (getControllerForPlayer(currentPlayer) == Controller.ANDROID) {
+//            makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
+//        }
         //makeMove(createMoveForStrategy(getCurrentPlayer(), new CellCoordinates(-1, -1), 0));
     }
 
