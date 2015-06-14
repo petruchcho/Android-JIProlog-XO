@@ -16,7 +16,6 @@ import java.io.IOException;
 public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
 
     private JIPEngine jipEngine = new JIPEngine();
-    private Context context;
 
     private static final String TAG = "AbstractPrologStrategy";
 
@@ -26,7 +25,6 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
     }
 
     private void initProlog(@NonNull Context context) {
-        this.context = context;
         jipEngine.reset();
         try {
             jipEngine.consultStream(context.getAssets().open(getFileName()), getFileName());
@@ -48,7 +46,7 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
                 @Override
                 public void solutionNotified(JIPEvent jipEvent) {
                     if (eventsListener != null) {
-                        eventsListener.moveMade(move.getPlayer(), useSolution(jipEvent.getTerm(), move));
+                        eventsListener.moveMade(useSolution(jipEvent.getTerm()));
                     }
                     Log.d(TAG, "Solution notified");
                     jipEngine.closeAllQueries();
@@ -91,6 +89,7 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
 
     @Override
     public void clearState() {
+        getJipEngine().closeAllQueries();
         initWithField(new Player[3][3]);
     }
 
@@ -102,5 +101,5 @@ public abstract class XOAbstractPrologStrategy extends XOAbstractStrategy {
 
     protected abstract String buildQuestion(Move move);
 
-    protected abstract CellCoordinates useSolution(JIPTerm solution, Move move);
+    protected abstract CellCoordinates useSolution(JIPTerm solution);
 }

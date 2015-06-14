@@ -13,13 +13,15 @@ public abstract class XOAbstractStrategy {
     }
 
     public interface XOStrategyEventsListener {
-        void onGameOverWithWinner(Player player);
+        void onCurrentPlayerWin();
+
+        void onCurrentPlayerLose();
 
         void onDraw();
 
         void onError(Exception e);
 
-        void moveMade(Player player, CellCoordinates coordinates);
+        void moveMade(CellCoordinates coordinates);
     }
 
     protected static final int SIZE_N = 3;

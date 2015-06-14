@@ -41,7 +41,7 @@ public final class FieldCell {
         return button.getId();
     }
 
-    public void setOnCLickListener(OnClickListener listener) {
+    public void setOnClickListener(OnClickListener listener) {
         button.setOnClickListener(listener);
     }
 

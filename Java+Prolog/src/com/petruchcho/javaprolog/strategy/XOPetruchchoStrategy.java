@@ -48,7 +48,7 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
     }
 
     @Override
-    protected CellCoordinates useSolution(JIPTerm solution, Move move) {
+    protected CellCoordinates useSolution(JIPTerm solution) {
         Hashtable map = solution.getVariablesTable();
         String message = ((JIPVariable) map.get("Message")).getValue().toString();
         if (message.equals("'Continue'") || message.contains("this move")) {
@@ -56,16 +56,16 @@ public class XOPetruchchoStrategy extends XOAbstractPrologStrategy {
             int y = Integer.parseInt(((JIPVariable) map.get("Y")).getValue().toString());
             if (message.contains("this move")) {
                 if (eventsListener != null) {
-                    eventsListener.onGameOverWithWinner(move.getPlayer());
+                    eventsListener.onCurrentPlayerWin();
                 }
             }
             return new CellCoordinates(x, y);
         } else {
             if (eventsListener != null) {
                 if (message.contains("Win")) {
-                    eventsListener.onGameOverWithWinner(move.getPlayer());
+                    eventsListener.onCurrentPlayerWin();
                 } else if (message.contains("Lose")) {
-                    eventsListener.onGameOverWithWinner(move.getPlayer().getOpponent());
+                    eventsListener.onCurrentPlayerLose();
                 } else {
                     eventsListener.onDraw();
                 }

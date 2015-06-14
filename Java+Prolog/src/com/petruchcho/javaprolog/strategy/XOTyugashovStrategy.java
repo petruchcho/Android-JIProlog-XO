@@ -31,7 +31,7 @@ public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
     }
 
     @Override
-    protected CellCoordinates useSolution(JIPTerm solution, Move move) {
+    protected CellCoordinates useSolution(JIPTerm solution) {
         Hashtable map = solution.getVariablesTable();
         String point = ((JIPVariable) map.get("P")).getValue().toString();
         int x = -1, y = -1;

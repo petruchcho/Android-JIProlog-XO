@@ -1,18 +1,13 @@
 package com.petruchcho.javaprolog.ui;
 
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckedTextView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.petruchcho.javaprolog.R;
@@ -23,22 +18,31 @@ import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 import com.petruchcho.javaprolog.strategy.XOPetruchchoStrategy;
 import com.petruchcho.javaprolog.strategy.XOTyugashovStrategy;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class MainActivity extends XOAbstractActivity {
 
+    protected View.OnClickListener humanMoveListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            FieldCell targetCell = field.getCell(v.getId());
+            if (targetCell.getValue() != null) {
+                return;
+            }
+            setLastMove(targetCell.getCoordinates());
+            targetCell.setValue(getCurrentPlayer());
+        }
+    };
+
     private ProgressBar progress;
     private Spinner spinnerX, spinnerO;
-
     private Handler handler = new Handler();
-    private List<XOAbstractStrategy> cachedStrategies = new ArrayList<>();
+    private Button acceptButton;
+    private Button playAgainButton;
 
     @Override
     protected int getLayoutId() {
@@ -48,11 +52,15 @@ public class MainActivity extends XOAbstractActivity {
     @Override
     protected void initViews() {
         initCells();
-
-        findViewById(R.id.play_again_button).setOnClickListener(new OnClickListener() {
+        playAgainButton = (Button) findViewById(R.id.play_again_button);
+        playAgainButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                updateStrategies();
                 clean();
+                if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
+                    makeMove();
+                }
             }
         });
 
@@ -68,36 +76,32 @@ public class MainActivity extends XOAbstractActivity {
                 new String[]{XOTyugashovStrategy.NAME, XOPetruchchoStrategy.NAME, "Human"}));
         spinnerO.setSelection(2);
 
-        Button acceptButton = (Button) findViewById(R.id.accept_button);
-        // TODO Not thread safe
+        acceptButton = (Button) findViewById(R.id.accept_button);
         acceptButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                changeStrategyForPlayer(XOAbstractStrategy.Player.X, spinnerX.getSelectedItem().toString());
-                changeStrategyForPlayer(XOAbstractStrategy.Player.O, spinnerO.getSelectedItem().toString());
+                updateStrategies();
+                if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
+                    makeMove();
+                }
             }
         });
+    }
+
+    @Override
+    protected List<Class<? extends XOAbstractStrategy>> getAvailableStrategies() {
+        return new ArrayList<Class<? extends XOAbstractStrategy>>() {{
+            add(XOTyugashovStrategy.class);
+            add(XOPetruchchoStrategy.class);
+        }};
     }
 
     @Override
     protected void declareResult(String message) {
         super.declareResult(message);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    private XOAbstractStrategy getStrategy(Class<? extends XOAbstractStrategy> clazz) {
-        for (XOAbstractStrategy strategy : cachedStrategies) {
-            if (strategy.getClass().equals(clazz)) {
-                return strategy;
-            }
-        }
-        new InitStrategyTask().execute(clazz);
-        return null;
-    }
-
-    private void updateStrategies(XOAbstractStrategy strategy) {
-        cachedStrategies.add(strategy);
-        updateStrategies();
+        playAgainButton.setEnabled(true);
+        progress.setVisibility(View.GONE);
     }
 
     private void updateStrategies() {
@@ -105,7 +109,6 @@ public class MainActivity extends XOAbstractActivity {
         changeStrategyForPlayer(XOAbstractStrategy.Player.O, spinnerO.getSelectedItem().toString());
     }
 
-    // TODO Not thread safe
     private void changeStrategyForPlayer(XOAbstractStrategy.Player player, String name) {
         switch (name) {
             case XOPetruchchoStrategy.NAME: {
@@ -114,7 +117,7 @@ public class MainActivity extends XOAbstractActivity {
                     return;
                 }
                 strategy.initWithField(field.getField());
-                setStrategyForPlayer(player, strategy);
+                setStrategyForPlayer(player, XOPetruchchoStrategy.class);
                 setControllerForPlayer(player, Controller.ANDROID);
             }
             break;
@@ -124,7 +127,7 @@ public class MainActivity extends XOAbstractActivity {
                     return;
                 }
                 strategy.initWithField(field.getField());
-                setStrategyForPlayer(player, strategy);
+                setStrategyForPlayer(player, XOTyugashovStrategy.class);
                 setControllerForPlayer(player, Controller.ANDROID);
             }
             break;
@@ -133,9 +136,6 @@ public class MainActivity extends XOAbstractActivity {
             }
         }
         isPaused(false);
-        if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
-            makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
-        }
     }
 
     @Override
@@ -147,11 +147,9 @@ public class MainActivity extends XOAbstractActivity {
     }
 
     @Override
-    protected Map<XOAbstractStrategy.Player, XOAbstractStrategy> initDefaultStrategyForPlayer() {
-        return new HashMap<XOAbstractStrategy.Player, XOAbstractStrategy>() {{
-            // TODO Not thread safe
-            XOAbstractStrategy strategy = getStrategy(XOTyugashovStrategy.class);
-            put(XOAbstractStrategy.Player.X, strategy);
+    protected Map<XOAbstractStrategy.Player, Class<? extends XOAbstractStrategy>> initDefaultStrategyForPlayer() {
+        return new HashMap<XOAbstractStrategy.Player, Class<? extends XOAbstractStrategy>>() {{
+            put(XOAbstractStrategy.Player.X, XOTyugashovStrategy.class);
             put(XOAbstractStrategy.Player.O, null);
         }};
     }
@@ -187,7 +185,7 @@ public class MainActivity extends XOAbstractActivity {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 FieldCell cell = new FieldCell(i + 1, j + 1, buttons[i][j]);
-                cell.setOnCLickListener(humanMoveListener);
+                cell.setOnClickListener(humanMoveListener);
                 cell.setOnCellValueChangedListener(this);
                 cells.add(cell);
             }
@@ -200,24 +198,22 @@ public class MainActivity extends XOAbstractActivity {
         Log.e("PrologApp", Arrays.toString(e.getStackTrace()));
     }
 
-    protected View.OnClickListener humanMoveListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            FieldCell targetCell = field.getCell(v.getId());
-            if (targetCell.getValue() != null) {
-                return;
-            }
-            setLastMove(targetCell.getCoordinates());
-            targetCell.setValue(getCurrentPlayer());
-        }
-    };
-
     @Override
-    public void onGameOverWithWinner(final XOAbstractStrategy.Player player) {
+    public void onCurrentPlayerWin() {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                declareResult(String.format("%s is winner!", player));
+                declareResult(getCurrentPlayer().name() + " is a winner!");
+            }
+        });
+    }
+
+    @Override
+    public void onCurrentPlayerLose() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                declareResult(getCurrentPlayer().getOpponent().name() + " is a winner!");
             }
         });
     }
@@ -243,7 +239,7 @@ public class MainActivity extends XOAbstractActivity {
     }
 
     @Override
-    public void moveMade(final XOAbstractStrategy.Player player, final CellCoordinates coordinates) {
+    public void moveMade(final CellCoordinates coordinates) {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -254,37 +250,9 @@ public class MainActivity extends XOAbstractActivity {
                 final int y = coordinates.getY();
                 setLastMove(new CellCoordinates(x, y));
 
-                updateCell(x, y, player);
+                updateCell(x, y, getCurrentPlayer());
 
             }
         });
-    }
-
-    class InitStrategyTask extends AsyncTask<Class<? extends XOAbstractStrategy>, Void, XOAbstractStrategy> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            isPaused(true);
-        }
-
-        @Override
-        protected void onPostExecute(XOAbstractStrategy strategy) {
-            super.onPostExecute(strategy);
-            updateStrategies(strategy);
-        }
-
-        @SafeVarargs
-        @Override
-        protected final XOAbstractStrategy doInBackground(Class<? extends XOAbstractStrategy>... params) {
-            Class<? extends XOAbstractStrategy> clazz = params[0];
-            try {
-                Constructor<? extends XOAbstractStrategy> constructor = clazz.getConstructor(Context.class, XOAbstractStrategy.XOStrategyEventsListener.class);
-                return constructor.newInstance(MainActivity.this, MainActivity.this);
-            } catch (Throwable e) {
-                Log.d("MainActivity", e.getMessage());
-            }
-            return null;
-        }
     }
 }
