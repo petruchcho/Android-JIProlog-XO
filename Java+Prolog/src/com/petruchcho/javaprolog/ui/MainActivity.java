@@ -86,6 +86,8 @@ public class MainActivity extends XOAbstractActivity {
                 }
             }
         });
+        acceptButton.setEnabled(false);
+        playAgainButton.setEnabled(false);
     }
 
     @Override
@@ -98,6 +100,9 @@ public class MainActivity extends XOAbstractActivity {
 
     @Override
     protected void declareResult(String message) {
+        if (isGameOver) {
+            return;
+        }
         super.declareResult(message);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         playAgainButton.setEnabled(true);
@@ -168,6 +173,10 @@ public class MainActivity extends XOAbstractActivity {
     protected void isPaused(boolean isPaused) {
         field.setEnabled(!isPaused);
         progress.setVisibility(isPaused ? View.VISIBLE : View.GONE);
+        if (!isPaused) {
+            playAgainButton.setEnabled(true);
+            acceptButton.setEnabled(true);
+        }
     }
 
     private void initCells() {
@@ -203,7 +212,7 @@ public class MainActivity extends XOAbstractActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                declareResult(getCurrentPlayer().name() + " is a winner!");
+                declareResult(getCurrentPlayer().name() + " победили!");
             }
         });
     }
@@ -213,7 +222,7 @@ public class MainActivity extends XOAbstractActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                declareResult(getCurrentPlayer().getOpponent().name() + " is a winner!");
+                declareResult(getCurrentPlayer().getOpponent().name() + " победили!");
             }
         });
     }
@@ -223,7 +232,7 @@ public class MainActivity extends XOAbstractActivity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                declareResult("It's a draw!");
+                declareResult("Это ничья!");
             }
         });
     }

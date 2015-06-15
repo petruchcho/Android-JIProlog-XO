@@ -10,6 +10,7 @@ import android.util.Log;
 import com.petruchcho.javaprolog.field.CellCoordinates;
 import com.petruchcho.javaprolog.field.Field;
 import com.petruchcho.javaprolog.field.FieldCell;
+import com.petruchcho.javaprolog.field.TicTacToeHelper;
 import com.petruchcho.javaprolog.strategy.Move;
 import com.petruchcho.javaprolog.strategy.XOAbstractStrategy;
 
@@ -23,8 +24,8 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     private static final int DELAY_BETWEEN_MOVES = 2000;
     private static final String TAG = "XOAbstractActivity";
 
+    protected boolean isGameOver = false;
     protected Field field;
-    protected boolean isResultDeclared;
 
     private XOAbstractStrategy.Player currentPlayer = XOAbstractStrategy.Player.X;
     private CellCoordinates lastMove = new CellCoordinates(-1, -1);
@@ -62,7 +63,7 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
 
     protected void declareResult(String message) {
         field.setEnabled(false);
-        isResultDeclared = true;
+        isGameOver = true;
     }
 
     protected final XOAbstractStrategy getStrategy(Class<? extends XOAbstractStrategy> clazz) {
@@ -83,12 +84,12 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
     }
 
     protected final void makeMove() {
-        if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID) {
+        if (getControllerForPlayer(getCurrentPlayer()) == Controller.ANDROID && !isGameOver) {
             makeMove(createMoveForStrategy(getCurrentPlayer(), getLastMove(), 0));
         }
     }
 
-    protected final void makeMove(Move move) {
+    private void makeMove(Move move) {
         try {
             isPaused(true);
             getStrategyForPlayer(move.getPlayer()).makeMove(move);
@@ -121,6 +122,7 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
         }
         field.clean();
         currentPlayer = XOAbstractStrategy.Player.X;
+        isGameOver = false;
     }
 
     protected abstract void handleError(Exception e);
@@ -168,6 +170,22 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
                 getStrategyForPlayer(entry.getKey()).updateCellValue(value, coordinates);
             }
         }
+
+        if (TicTacToeHelper.isDraw(field)) {
+            declareResult("Это ничья!");
+            return;
+        }
+
+        if (TicTacToeHelper.hasWon(XOAbstractStrategy.Player.X, field)) {
+            declareResult("X победили!");
+            return;
+        }
+
+        if (TicTacToeHelper.hasWon(XOAbstractStrategy.Player.O, field)) {
+            declareResult("O победили!");
+            return;
+        }
+
         swapCurrentPlayer();
     }
 
