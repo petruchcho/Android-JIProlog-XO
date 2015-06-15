@@ -199,8 +199,8 @@ abstract class XOAbstractActivity extends Activity implements FieldCell.OnCellVa
             try {
                 Constructor<? extends XOAbstractStrategy> constructor = clazz.getConstructor(Context.class, XOAbstractStrategy.XOStrategyEventsListener.class);
                 return constructor.newInstance(XOAbstractActivity.this, XOAbstractActivity.this);
-            } catch (Throwable e) {
-                Log.d(TAG, e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             return null;
         }

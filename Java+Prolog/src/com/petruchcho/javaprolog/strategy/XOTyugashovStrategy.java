@@ -10,7 +10,9 @@ import com.ugos.jiprolog.engine.JIPEngine;
 import com.ugos.jiprolog.engine.JIPTerm;
 import com.ugos.jiprolog.engine.JIPVariable;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
 
@@ -18,6 +20,7 @@ public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
 
     public XOTyugashovStrategy(@NonNull Context context, XOStrategyEventsListener eventsListener) {
         super(context, eventsListener);
+        clearState();
     }
 
     @Override
@@ -27,23 +30,25 @@ public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
 
     @Override
     protected String buildQuestion(Move move) {
-        return String.format("?- hod(%s, P).", String.valueOf(move.getPlayer()));
+        return String.format("?- hod(%s,[X,Y]).", getPlayerCharacter(move.getPlayer()));
     }
 
     @Override
     protected CellCoordinates useSolution(JIPTerm solution) {
         Hashtable map = solution.getVariablesTable();
-        String point = ((JIPVariable) map.get("P")).getValue().toString();
+        String point = solution.toString();
+        List<Integer> coordinates = new ArrayList<>();
         int x = -1, y = -1;
         for (char c : point.toCharArray()) {
             if (Character.isDigit(c)) {
-                if (x < 0) {
-                    x = c - '0';
-                } else {
-                    y = c - '0';
-                }
+                coordinates.add(c - '0');
             }
         }
+
+        if (coordinates.size() < 2) return null;
+        x = coordinates.get(coordinates.size() - 2);
+        y = coordinates.get(coordinates.size() - 1);
+
         return x < 0 ? null : new CellCoordinates(y, x);
     }
 
@@ -55,9 +60,9 @@ public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
         int y = cellCoordinates.getY();
 
         jip.retract(jip.getTermParser().parseTerm(
-                String.format("p(-,[%s, %s]).", y, x)));
+                String.format("p(-,[%s,%s]).", y, x)));
         jip.asserta(jip.getTermParser().parseTerm(
-                String.format("p(%s,[%s, %s]).", getPlayerCharacter(player), y,
+                String.format("p(%s,[%s,%s]).", getPlayerCharacter(player), y,
                         x)));
     }
 
@@ -73,16 +78,16 @@ public class XOTyugashovStrategy extends XOAbstractPrologStrategy {
         for (int x = 1; x <= 3; x++) {
             for (int y = 1; y <= 3; y++) {
                 jip.retract(jip.getTermParser().parseTerm(
-                        String.format("p(%s,[%s, %s]).", getPlayerCharacter(null), y, x)));
+                        String.format("p(%s,[%s,%s]).", getPlayerCharacter(null), y, x)));
 
                 jip.retract(jip.getTermParser().parseTerm(
-                        String.format("p(%s,[%s, %s]).", getPlayerCharacter(Player.X), y, x)));
+                        String.format("p(%s,[%s,%s]).", getPlayerCharacter(Player.X), y, x)));
 
                 jip.retract(jip.getTermParser().parseTerm(
-                        String.format("p(%s,[%s, %s]).", getPlayerCharacter(Player.O), y, x)));
+                        String.format("p(%s,[%s,%s]).", getPlayerCharacter(Player.O), y, x)));
 
                 jip.asserta(jip.getTermParser().parseTerm(
-                        String.format("p(%s,[%s, %s]).", getPlayerCharacter(field[x - 1][y - 1]), y, x)));
+                        String.format("p(%s,[%s,%s]).", getPlayerCharacter(field[x - 1][y - 1]), y, x)));
             }
         }
     }
